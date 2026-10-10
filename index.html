@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gás cortado em 0 segundo: da teoria ao protótipo de 10 mm</title>
+<meta name="description" content="Como sensores MQ, microcontroladores e válvulas detectam e cortam vazamentos de gás: três artigos científicos, estatísticas de São Paulo, um protótipo open-source de 10 mm em latão e simuladores interativos.">
+<meta property="og:title" content="Gás cortado em 0 segundo">
+<meta property="og:type" content="article">
+<style>
+:root{--bg:#fbf8f2;--fg:#201d18;--mut:#6a6358;--card:#fff;--line:#e4dccd;--acc:#b4540a;--acc2:#0f6f6a;--brass:#b8892d;--warn:#b3261e;--ok:#1f7a45;--code:#f2ece0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14120f;--fg:#efe9dc;--mut:#a79f90;--card:#1d1a15;--line:#352f26;--acc:#f08a3c;--acc2:#4fc3bb;--brass:#d9a947;--warn:#ff7b72;--ok:#58c98a;--code:#231f19}}
+:root[data-theme="dark"]{--bg:#14120f;--fg:#efe9dc;--mut:#a79f90;--card:#1d1a15;--line:#352f26;--acc:#f08a3c;--acc2:#4fc3bb;--brass:#d9a947;--warn:#ff7b72;--ok:#58c98a;--code:#231f19}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 Georgia,"Times New Roman",serif;padding-top:env(safe-area-inset-top,0)}
+h1,h2,h3,nav,button,label,table,.ui{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--acc2)}
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0)}
+header.top .in{max-width:1000px;margin:auto;display:flex;gap:16px;align-items:center;padding:10px 18px;flex-wrap:wrap}
+.brand{font:700 15px system-ui;color:var(--acc);text-decoration:none;margin-right:auto}
+nav a{font:500 14px system-ui;color:var(--fg);text-decoration:none;margin-left:14px;opacity:.8}nav a:hover{opacity:1;color:var(--acc)}
+.wrap{max-width:760px;margin:auto;padding:0 18px}.wide{max-width:1000px;margin:auto;padding:0 18px}
+.hero{padding:56px 0 28px}.hero h1{font-size:clamp(32px,6vw,52px);line-height:1.08;margin:0 0 14px;letter-spacing:-.02em}
+.hero p.lead{font-size:20px;color:var(--mut);margin:0 0 22px}
+.btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 18px;font:600 15px system-ui;text-decoration:none;cursor:pointer}
+.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}.btn:disabled{opacity:.5}
+.btn.warn{background:var(--warn)}
+.meta{font:14px system-ui;color:var(--mut)}
+h2{font-size:30px;line-height:1.2;margin:56px 0 12px;letter-spacing:-.01em}h3{font-size:21px;margin:30px 0 8px}
+p{margin:0 0 16px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
+.steps div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:14px/1.45 system-ui}
+.steps b{display:block;color:var(--acc);margin-bottom:2px}
+.formula{background:var(--code);border-left:4px solid var(--acc);padding:12px 16px;border-radius:6px;font:15px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:16px 0;overflow-x:auto}
+.note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:8px;padding:12px 16px;font:15px/1.55 system-ui;margin:20px 0}
+.note.danger{border-left-color:var(--warn)}.note.ok{border-left-color:var(--ok)}
+.tablewrap{overflow-x:auto;margin:18px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px;background:var(--card)}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:var(--code)}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow-x:auto;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--code);padding:1px 5px;border-radius:4px}pre code{background:none;padding:0}
+figure{margin:24px 0}figure img{max-width:100%;height:auto;display:block;margin:auto}figcaption{font:14px system-ui;color:var(--mut);text-align:center;margin-top:6px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:20px 0}
+.gallery figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.sim{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:22px 0;font-family:system-ui}
+.sim h3{margin-top:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.ctl{margin:10px 0;font-size:14px}.ctl label{display:flex;justify-content:space-between;gap:10px;margin-bottom:2px}.ctl output{font-weight:700;color:var(--acc)}
+input[type=range]{width:100%;accent-color:var(--acc)}input[type=number],select,textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:14px system-ui}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font:700 12px system-ui;letter-spacing:.04em;background:var(--code)}
+.b-FECHADA{background:#dfe6ea;color:#243}.b-ABERTA{background:#cfeedd;color:#0d4a27}.b-ABRINDO,.b-FECHANDO{background:#fde8c4;color:#6b3a00}.b-BLOQUEADA,.b-FALHA{background:#ffd5d1;color:#7a120c}.b-DESLIGADO{background:#444;color:#ddd}
+.leds{display:flex;gap:14px;align-items:center;font:13px system-ui;margin:8px 0}.led{display:inline-block;width:14px;height:14px;border-radius:50%;background:#555;margin-right:5px;vertical-align:-2px}
+.led.g.on{background:#38d27a;box-shadow:0 0 10px #38d27a}.led.r.on{background:#ff4b3e;box-shadow:0 0 10px #ff4b3e}.led.b.on{background:#ffcc33;box-shadow:0 0 10px #ffcc33}
+#log{height:150px;overflow:auto;background:var(--code);border-radius:8px;padding:8px 10px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace}
+#log .e{color:var(--warn);font-weight:700}#log .k{color:var(--ok)}
+.bar{height:8px;border-radius:5px;background:var(--code);overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;width:0;background:var(--acc)}
+canvas{width:100%;height:auto;display:block;background:var(--card);border-radius:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}.kpis div{background:var(--code);border-radius:10px;padding:8px 12px;font:12px system-ui;color:var(--mut)}.kpis b{display:block;font-size:20px;color:var(--fg)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:18px 0}
+.cards div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;font:14px/1.5 system-ui}.cards b.big{display:block;font-size:30px;color:var(--acc);line-height:1.1}
+ol.refs{font-size:14px;padding-left:20px}ol.refs li{margin-bottom:8px}
+footer{border-top:1px solid var(--line);margin-top:60px;padding:30px 0 50px;font:13px/1.6 system-ui;color:var(--mut)}
+@media(prefers-reduced-motion:no-preference){.pulse{animation:pl 1s infinite}@keyframes pl{50%{opacity:.35}}}
+</style>
+<link rel="stylesheet" href="css/viewer.css">
+</head>
+<body id="topo">
+<header class="top"><div class="in"><a class="brand" href="#topo">Gás cortado em 0 s</a>
+<nav><a href="#teoria">Teoria</a><a href="#sp">São Paulo</a><a href="#prototipo">Protótipo</a><a href="#modelo3d">Peças 3D</a><a href="#sensores">Sensores</a><a href="#simulador">Simuladores</a><a href="#referencias">Referências</a></nav>
+<button class="btn alt" id="theme" style="padding:5px 10px;font-size:13px" aria-label="Alternar tema">◐</button></div></header>
+
+<main>
+<section class="wrap hero">
+<p class="meta">Segurança embarcada · ESP32 / Arduino · válvula borboleta de 90°</p>
+<h1>Como a IoT corta o gás antes que ele vire acidente</h1>
+<p class="lead">Da teoria de três artigos científicos ao protótipo de 10 mm em latão: sensor de gás, sensor de movimento, encoder magnético e um firmware que fecha a válvula na mesma iteração do loop.</p>
+<p><a class="btn" href="#simulador">Testar os simuladores</a> <a class="btn alt" href="#sp">Ver as estatísticas de SP</a></p>
+<p class="meta">Baseado em três artigos e um protótipo open-source. Leitura de cerca de 14 minutos.</p>
+<figure><img src="img/montagem.png" alt="Montagem 3D da válvula: corpo de latão com a caixa eletrônica azul-petróleo sobre ele" width="560"><figcaption>Montagem 3D renderizada a partir dos STL do projeto: corpo em latão e caixa eletrônica.</figcaption></figure>
+</section>
+
+<section class="wrap" id="problema">
+<h2>O problema: o gás só avisa quando alguém está por perto para sentir</h2>
+<p>O GLP e o gás natural são combustíveis excelentes e, justamente por isso, estão dentro de milhões de cozinhas. O risco aparece quando há uma mangueira ressecada, um registro gasto ou uma conexão solta e ninguém está em casa. Os três artigos estudados partem da mesma queixa: detectores comuns apenas apitam. Se ninguém ouve, o gás continua saindo [<a href="#r2">2</a>][<a href="#r3">3</a>].</p>
+<p>A resposta proposta é um ciclo que roda sozinho, o dia inteiro:</p>
+<div class="steps"><div><b>1. Sentir</b>Sensor MQ mede o gás; PIR ou radar detectam presença.</div><div><b>2. Decidir</b>O microcontrolador compara com um limiar.</div><div><b>3. Agir</b>Um atuador fecha a válvula, sem esperar uma pessoa.</div><div><b>4. Avisar</b>Buzzer, LED, tela ou app informam e o sistema trava.</div></div>
+</section>
+
+<section class="wrap" id="teoria">
+<h2>O que dizem os três artigos</h2>
+
+<h3>Artigo 1: ESP32, MQ-2, chama e Blynk <a href="#r1" style="font-size:14px">[1]</a></h3>
+<p>Ilhamdi e colegas (Universidade Malikussaleh, Indonésia, 2024) montam um sistema com ESP32, sensor MQ-2 para GLP, sensor de chama, PIR para presença humana, display 16×2, relés, buzzer, LEDs, ventilador e bomba d'água de 5 V, tudo alimentado por baterias de 9 V. O app Blynk mostra os dados e permite controle remoto. Segundo o texto, acima de 600 ppm o sistema liga o buzzer, o LED vermelho e o ventilador; se a chama é detectada, a bomba entra e chega uma notificação ao celular.</p>
+<p>O artigo converte a leitura do ADC de 12 bits (0 a 4095) em tensão e em ppm, e testa o sensor de chama com um isqueiro: detecção estável até 30 cm, 60 cm e 100 cm nas três configurações de tabela apresentadas. É um sistema de <em>alerta e mitigação</em>: ele ventila e apaga, mas não fecha o fornecimento de gás.</p>
+<div class="note"><b>Uma incoerência útil de notar.</b> O texto cita o limiar de 600 ppm, mas na Tabela 3 a leitura de 773 ppm ainda aparece com buzzer, LED e ventilador desligados; eles só ligam na linha seguinte, com 1.353 ppm. A coluna de tensão também não segue sempre a fórmula Vout = 5 × ADC / 4096 (por exemplo, ADC 257 daria cerca de 0,31 V, e a tabela mostra 0,2 V). Por isso o simulador mais abaixo usa os pares ADC→ppm da tabela, e não uma fórmula inventada.</div>
+
+<h3>Artigo 2: ESP32, MQ-5 e servo no registro <a href="#r2" style="font-size:14px">[2]</a></h3>
+<p>Vignesh e Priyadharshini (St. Joseph's College, Índia, 2026) usam um MQ-5 lido pelo ADC do ESP32. Ao passar do limiar, o sistema toca o buzzer e gira um servo até um ângulo fixo que fecha a válvula. Um servidor web local no próprio ESP32 mostra a concentração e a posição da válvula e permite abrir ou fechar manualmente, sem depender da nuvem, o que os autores destacam como vantagem em emergência.</p>
+<p>O ponto fraco é a ausência de números: o artigo fala em resposta "dentro de poucos segundos" e não informa limiar, tempo medido nem volume de gás liberado. A ideia de operar offline, no entanto, é a que mais interessa a um protótipo de segurança.</p>
+
+<h3>Artigo 3: Arduino Uno, MQ-6 e corte do knob <a href="#r3" style="font-size:14px">[3]</a></h3>
+<p>Faye e colegas (Suryodaya College, Índia, 2025) propõem Arduino Uno, MQ-6 (GLP e butano), servo para fechar o gás, buzzer e LCD. Os próprios autores descrevem a versão como <em>meio implementada</em>. A proposta completa inclui sensores de chama e fumaça, botão, display OLED e um <strong>temporizador</strong> que fecha o gás depois de um tempo definido, para evitar queimador esquecido aceso. A seção de resultados descreve o que se <em>espera</em> do sistema, e não medições.</p>
+<p>A revisão de literatura do artigo cobre soluções que desligam a energia, ligam exaustor e enviam SMS por GSM, o que mostra que a ação não precisa ser só fechar o gás.</p>
+
+<h3>Comparando os três</h3>
+<div class="tablewrap"><table>
+<tr><th></th><th>Artigo 1</th><th>Artigo 2</th><th>Artigo 3</th></tr>
+<tr><th>Microcontrolador</th><td>ESP32</td><td>ESP32</td><td>Arduino Uno</td></tr>
+<tr><th>Sensor de gás</th><td>MQ-2</td><td>MQ-5</td><td>MQ-6</td></tr>
+<tr><th>Corta o gás?</th><td>Não (ventilador e bomba)</td><td>Sim, servo</td><td>Sim, servo (proposto)</td></tr>
+<tr><th>Alerta</th><td>Buzzer, LED, LCD, Blynk</td><td>Buzzer, página web local</td><td>Buzzer, LED, LCD/OLED</td></tr>
+<tr><th>Dados medidos</th><td>Tabela ADC→ppm e alcance do sensor de chama</td><td>Resposta "em poucos segundos", sem números</td><td>Resultados esperados, sem medição</td></tr>
+<tr><th>Presença/movimento</th><td>PIR citado, não testado</td><td>Não usa</td><td>Não usa</td></tr>
+<tr><th>Limite principal</th><td>Não fecha o gás; limiar do texto ≠ tabela</td><td>Servo sem retorno de posição; sem tempos</td><td>Implementação parcial</td></tr>
+</table></div>
+<p>Os três usam sensores MQ de baixo custo e uma lógica de "passou do limiar, age". Nenhum verifica se a válvula realmente fechou, nenhum trava o estado após o corte e nenhum trata o sensor de movimento como gatilho. É esse espaço que o protótipo deste projeto tenta ocupar.</p>
+</section>
+
+<section class="wrap" id="sp">
+<h2>Estatística: vazamentos de gás em São Paulo</h2>
+<p>Cheguei a esta seção procurando uma série oficial <em>ano a ano</em> de vazamentos de gás em SP. <strong>Não encontrei uma série pública e consolidada.</strong> O que existe são números isolados, de fontes e períodos diferentes. Eles estão abaixo, rotulados pelo que realmente são, e o gráfico foi feito para você colar a série oficial assim que a obtiver.</p>
+<div class="cards">
+<div><b class="big">4.055</b>acidentes por vazamento de GLP registrados pelo Corpo de Bombeiros em SP entre 2012 e 2014, segundo levantamento citado em material do Sindigás [<a href="#r6">6</a>].<br><span class="meta">Equivale a uma média de ≈ 1.352 por ano (cálculo meu, dividindo por 3).</span></div>
+<div><b class="big">3.083</b>acidentes por vazamento de gás de cozinha atribuídos ao Corpo de Bombeiros da PMESP em página do governo paulista sobre o programa Chama Segura [<a href="#r7">7</a>].<br><span class="meta">A fonte consultada não informa o período.</span></div>
+<div><b class="big">2 mortes</b>na explosão do Jaguaré (zona oeste da capital, 11 de maio de 2026), após obra atingir uma tubulação de gás [<a href="#r8">8</a>].<br><span class="meta">Gás canalizado, não botijão.</span></div>
+</div>
+<div class="note"><b>Cuidado ao comparar.</b> Os números dos Bombeiros e os do Sindigás medem coisas diferentes: o Sindigás publica apenas acidentes com botijões de 13 kg que têm laudo conclusivo, e diz que suas estatísticas não se relacionam diretamente com as dos Bombeiros [<a href="#r9">9</a>]. O caso do Jaguaré, por sua vez, é dano de terceiros na rede pública, e um dispositivo na válvula interna da casa não o teria evitado. O protótipo deste site atua no outro grande grupo: instalações internas (mangueira, registro, fogão, botijão).</div>
+
+<div class="sim" id="statsim">
+<h3>Gráfico anual: cole sua série</h3>
+<p class="meta">Uma linha por ano, no formato <code>ano;ocorrências</code>. Fonte sugerida: pedido ao Corpo de Bombeiros da PMESP pelo Serviço de Informação ao Cidadão do Estado (SIC.SP), pela Lei de Acesso à Informação, solicitando "atendimentos por vazamento de gás, por ano e por tipo (GLP / gás natural)". Os valores abaixo vêm preenchidos só com a média derivada de 2012–2014; <strong>não são uma série real</strong>.</p>
+<div class="grid2"><div>
+<textarea id="serie" rows="9" aria-label="Série anual">2012-2014 (média/ano);1352</textarea>
+<div class="row"><button class="btn" id="drawStats">Atualizar gráfico</button><button class="btn alt" id="exStats">Exemplo ilustrativo</button></div>
+<p class="meta" id="exNote"></p>
+</div><div><canvas id="statChart" width="640" height="360"></canvas><div class="kpis" id="statKpi"></div></div></div>
+</div>
+<p>Mesmo sem a série, o raciocínio é claro: se há da ordem de mil acidentes por ano com GLP só num estado, qualquer redução do tempo entre o início do vazamento e o corte do gás tem efeito grande. O simulador de exposição, mais abaixo, mostra essa conta.</p>
+</section>
+
+<section class="wrap" id="prototipo">
+<h2>Da teoria à bancada: o Controlador de Fluido de 10 mm, versão gás</h2>
+<p>O repositório <em>Controlador de Água 10 mm</em> [<a href="#r4">4</a>] reúne CAD, firmware e documentação de uma válvula borboleta rotativa para tubo de Ø10 mm, em corpo de 88 × 50 × 62 mm. Um disco de 32 mm gira 90° (0° fechada, 90° aberta). Um ímã na ponta do eixo fica sob um encoder magnético AS5600, que informa o ângulo; se o motor é acionado e o ângulo não muda, o firmware entende que travou. A mecânica e a pinagem foram mantidas e a lógica foi reescrita para gás.</p>
+<h3>O que mudou em relação ao controlador de água</h3>
+<div class="tablewrap"><table>
+<tr><th>Tema</th><th>Água (original)</th><th>Gás (esta versão)</th></tr>
+<tr><th>Gatilho</th><td>Sonda de condução, alagamento, fluxo</td><td>Sensor de movimento (PIR) e detector de gás</td></tr>
+<tr><th>Atraso até o corte</th><td>Pré-alarme de 60 s</td><td><code>T_CORTE_VAZAMENTO = 0</code>: mesma iteração do <code>loop()</code></td></tr>
+<tr><th>Alarme</th><td>Intermitente, só no pré-alarme</td><td>Buzzer contínuo + LED vermelho durante e após o corte</td></tr>
+<tr><th>Bloqueio</th><td>EEPROM após o corte</td><td>EEPROM após movimento, gás ou emergência do botão</td></tr>
+<tr><th>Abertura</th><td>Negada com vazamento</td><td>Negada com movimento, gás ou sensores aquecendo (30 s)</td></tr>
+<tr><th>Rearme</th><td>Botão separado, 3 s</td><td>Botão único, 3 s seguidos e sem movimento nem gás</td></tr>
+<tr><th>Partida</th><td>Sempre fecha primeiro</td><td>Igual, referenciando o zero do AS5600</td></tr>
+</table></div>
+<p>O firmware completo (<code>.ino</code>, 115200 baud, comandos <code>Z</code>, <code>I</code>, <code>?</code>, <code>A</code>, <code>F</code>) está disponível em <a id="fwlink" href="firmware/firmware_corte_gas_10mm.ino" download>firmware_corte_gas_10mm.ino</a>.</p>
+<h3>Botão único</h3>
+<div class="tablewrap"><table>
+<tr><th>Gesto</th><th>Estado</th><th>Resultado</th></tr>
+<tr><td>Toque curto</td><td>Fechada</td><td>Abre, se não houver movimento nem gás</td></tr>
+<tr><td>Toque curto</td><td>Aberta</td><td>Fecha (manual, sem bloqueio)</td></tr>
+<tr><td>Toque durante a abertura</td><td>Abrindo</td><td>Emergência do botão: fecha e bloqueia</td></tr>
+<tr><td>Segurar 3 s</td><td>Bloqueada ou falha</td><td>Rearme, só sem movimento e sem gás</td></tr>
+</table></div>
+<div class="note danger"><b>Antes de pensar em instalar.</b>
+<ul style="margin:6px 0 0;padding-left:20px">
+<li><b>Estanqueidade:</b> um disco rígido de 3 mm em câmara de Ø32 mm não veda gás. É preciso sede elastomérica (NBR ou Viton) e teste de estanqueidade; para o corte direto, use uma eletroválvula normalmente fechada certificada em série (a saída <code>PIN_SOL_GAS</code> existe para isso).</li>
+<li><b>Faíscas:</b> motor DC com escovas é fonte de ignição. Mantenha a caixa eletrônica selada e fora de ambiente com gás acumulado, ou use motor sem escovas.</li>
+<li><b>Sem energia:</b> se a energia cair com a válvula aberta, ela continua aberta (o redutor segura a posição). Só uma eletroválvula normalmente fechada dá corte sem energia.</li>
+<li><b>Sensores MQ não são certificados:</b> servem para prototipar. Em uso real, combine com um detector comercial certificado (INMETRO).</li>
+<li><b>Fio rompido:</b> sensor desconectado lê "sem movimento / sem gás". Considere supervisão de linha.</li>
+</ul></div>
+</section>
+
+<section class="wide" id="modelo3d">
+<div class="wrap"><h2>O protótipo em 3D</h2>
+<p>As 7 peças são os STL reais do projeto. Arraste para girar, use o controle para explodir a montagem e escolha uma aba para destacar um subsistema. O disco e o eixo giram junto com o simulador de válvula. No projeto final, o corpo, o obturador e o eixo seriam usinados em <strong>latão</strong>; o STL serve de geometria de referência.</p></div>
+<div class="wrap" style="max-width:1000px">
+<div class="v3d">
+  <div class="v3d-tabs" role="tablist" aria-label="Subsistemas">
+    <button type="button" class="v3d-tab is-active" role="tab" aria-selected="true" data-view="conjunto">Conjunto</button>
+    <button type="button" class="v3d-tab" role="tab" aria-selected="false" data-view="camara">Câmara de 32 mm</button>
+    <button type="button" class="v3d-tab" role="tab" aria-selected="false" data-view="canal">Canal de 10 mm</button>
+    <button type="button" class="v3d-tab" role="tab" aria-selected="false" data-view="encoder">AS5600 + eixo</button>
+    <button type="button" class="v3d-tab" role="tab" aria-selected="false" data-view="caixa">Caixa eletrônica</button>
+  </div>
+
+  <div class="v3d-grid">
+    <div class="v3d-main">
+      <div id="viewerCanvasWrap" class="viewer-wrap">
+        <div id="viewerStatus" class="viewer-status" role="status">Carregando as 7 peças do CAD…</div>
+        <p class="viewer-hint">Arraste para girar · pinça ou Ctrl + roda para zoom · clique numa peça</p>
+      </div>
+    </div>
+
+    <div class="v3d-side">
+      <div class="v3d-panel">
+        <div>
+          <div class="v3d-row"><label for="explodeRange">Explodir</label><output id="explodeOut" for="explodeRange">0%</output></div>
+          <input id="explodeRange" type="range" min="0" max="100" step="1" value="0">
+        </div>
+        <div>
+          <div class="v3d-row"><label for="viewerAngle">Ângulo da válvula</label><output id="viewerAngleOut" for="viewerAngle">0°</output></div>
+          <input id="viewerAngle" type="range" min="0" max="90" step="1" value="0" class="range-frost" disabled>
+          <label class="v3d-sync"><input id="syncSim" type="checkbox" checked> Seguir o simulador</label>
+        </div>
+        <div class="v3d-actions">
+          <button type="button" id="autoRotate" class="v3d-btn" aria-pressed="false">Girar sozinho</button>
+          <button type="button" id="resetView" class="v3d-btn">Recentralizar</button>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="v3d-h3">Peças do STL</h3>
+        <ul id="partList"></ul>
+        <p id="partInfo" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="wrap"><h3>As três passagens de Ø7 mm</h3>
+<div class="tablewrap"><table><tr><th>Posição</th><th>Função nesta versão</th></tr>
+<tr><td>x = −20</td><td>Alimentação 12 V</td></tr><tr><td>x = 0</td><td>Sensor de movimento (PIR), sinal digital HIGH = presença</td></tr>
+<tr><td>x = +20</td><td>Detector de gás (saída digital) e, se quiser, botão remoto, em cabo multivias de até ≈ 6,5 mm</td></tr></table></div></div>
+</section>
+
+<section class="wrap" id="sensores">
+<h2>Recomendações de sensores</h2>
+<h3>Movimento ou presença</h3>
+<div class="tablewrap"><table>
+<tr><th>Sensor</th><th>Quando usar</th><th>Observação</th></tr>
+<tr><td><strong>HC-SR501</strong> (PIR)</td><td>O mais barato e fácil de achar</td><td>Aquece por cerca de 1 min e dá falsos disparos com variação de temperatura. Em AVR, coloque 10 kΩ para GND na saída.</td></tr>
+<tr><td><strong>AM312</strong> (mini PIR)</td><td>Compacto, 3,3 V</td><td>Menos falso disparo que o SR501; alcance curto (≈ 3 a 5 m).</td></tr>
+<tr><td><strong>Panasonic EKMB / EKMC</strong></td><td>Instalação mais séria</td><td>Saída digital limpa e baixo consumo; mais caro.</td></tr>
+<tr><td><strong>HLK-LD2410C</strong> (radar mmWave 24 GHz)</td><td>Detectar pessoa parada</td><td>Saída OUT digital em 3,3 V; ajuste alcance e sensibilidade.</td></tr>
+<tr><td><strong>RCWL-0516</strong> (micro-ondas)</td><td>Só como reforço</td><td>Atravessa paredes e falha por interferência.</td></tr>
+</table></div>
+<p>O artigo 1 também aponta o caminho: sugere melhorar o PIR para distinguir movimento humano de outros tipos de movimento [<a href="#r1">1</a>]. Isso importa aqui porque, com corte imediato, um falso disparo fecha e <em>bloqueia</em> a válvula.</p>
+<h3>Gás</h3>
+<div class="tablewrap"><table>
+<tr><th>Sensor</th><th>Detecta</th><th>Usado em</th></tr>
+<tr><td>MQ-2</td><td>Metano, butano, GLP, CO</td><td>Artigo 1</td></tr>
+<tr><td>MQ-5</td><td>GLP, gás natural, metano</td><td>Artigo 2</td></tr>
+<tr><td>MQ-6</td><td>GLP e butano</td><td>Artigo 3</td></tr>
+<tr><td>MQ-4</td><td>Metano e gás natural</td><td>Tabela de sensores do artigo 1</td></tr>
+</table></div>
+<p>Regra prática: <strong>MQ-6 ou MQ-5 para botijão (GLP)</strong> e <strong>MQ-4 para gás encanado (metano)</strong>. O elemento do MQ é aquecido, precisa de aquecimento prévio e deriva com o tempo, o que justifica o bloqueio de 30 s na partida do firmware.</p>
+</section>
+
+<section class="wide" id="simulador">
+<div class="wrap"><h2>Simuladores</h2>
+<p>Tudo roda no seu navegador. Os três simuladores seguem, respectivamente, o firmware desta versão, o cálculo de exposição ao gás e os dados do artigo 1.</p></div>
+
+<div class="sim" id="sim1"><h3>1. Válvula, movimento, gás e botão (lógica do firmware)</h3>
+<p class="meta" style="margin-top:-6px">Abra a válvula, gere movimento ou gás e veja o corte, o bloqueio persistente e o rearme de 3 s. "Cortar energia" mostra que o estado bloqueado sobrevive; "Travar disco" simula obstrução.</p>
+<div class="grid2"><div>
+<svg id="valveSvg" viewBox="0 0 360 190" role="img" aria-label="Válvula borboleta" style="width:100%;background:var(--code);border-radius:10px">
+<rect x="0" y="70" width="360" height="50" fill="#9aa3ab" opacity=".55"/>
+<rect x="110" y="45" width="140" height="100" rx="12" fill="#c9a14a" stroke="#8a6a22"/>
+<circle cx="180" cy="95" r="42" fill="#14120f" opacity=".85"/>
+<g id="disc" transform="rotate(0 180 95)"><rect x="176" y="55" width="8" height="80" rx="3" fill="#e8c56a" stroke="#8a6a22"/></g>
+<circle cx="180" cy="95" r="6" fill="#b8bcc2" stroke="#555"/>
+<text x="8" y="62" font-size="11" fill="currentColor" font-family="system-ui">Gás →</text><text x="300" y="62" font-size="11" fill="currentColor" font-family="system-ui">→ Fogão</text>
+<text id="angTxt" x="180" y="176" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor" font-family="system-ui">0°</text></svg>
+<div class="row" style="align-items:center"><span class="badge b-FECHANDO" id="stBadge">FECHANDO</span><span class="meta" id="eepromTxt"></span></div>
+<div class="leds"><span><i class="led g" id="ledG"></i>Verde</span><span><i class="led r" id="ledR"></i>Vermelho</span><span><i class="led b" id="ledB"></i>Buzzer</span><label style="margin-left:auto"><input type="checkbox" id="sound"> som</label></div>
+<div class="row"><button class="btn" id="btnTap">Botão (toque)</button><button class="btn alt" id="btnHold">Segurar 3 s: rearme</button></div>
+<div class="bar"><i id="holdBar"></i></div>
+</div><div>
+<div class="ctl"><label>Concentração de gás <output id="gasOut">0 ppm</output></label><input type="range" id="gas" min="0" max="5000" step="50" value="0"></div>
+<div class="ctl"><label>Limiar do detector <output id="thrOut">1000 ppm</output></label><input type="range" id="thr" min="300" max="3000" step="50" value="1000"></div>
+<div class="row"><button class="btn alt" id="pir">Sensor de movimento: SEM</button><button class="btn alt" id="stuck">Travar disco: não</button></div>
+<div class="row"><button class="btn alt" id="pwr">Cortar energia</button><button class="btn alt" id="speed">Tempo: 1×</button></div>
+<p class="meta" id="warmTxt"></p>
+<div id="log" aria-live="polite"></div>
+</div></div></div>
+
+<div class="sim" id="sim2"><h3>2. Quanto gás escapa até cada resposta?</h3>
+<p class="meta" style="margin-top:-6px">Modelo simples de ambiente com mistura uniforme: o vazamento começa em t = 0 e o detector dispara ao atingir o limiar. Compara apenas alarme, corte "em poucos segundos" (como nos artigos 2 e 3) e corte imediato.</p>
+<div class="grid2"><div>
+<div class="ctl"><label>Vazão do vazamento <output id="qOut">8 L/min</output></label><input type="range" id="q" min="1" max="40" value="8"></div>
+<div class="ctl"><label>Volume do ambiente <output id="vOut">30 m³</output></label><input type="range" id="v" min="8" max="120" value="30"></div>
+<div class="ctl"><label>Ventilação <output id="aOut">0,5 renov./h</output></label><input type="range" id="a" min="0" max="10" step="0.5" value="0.5"></div>
+<div class="ctl"><label>Limiar do detector <output id="tOut">600 ppm</output></label><input type="range" id="t" min="200" max="3000" step="50" value="600"></div>
+<div class="ctl"><label>Reação humana ao alarme <output id="hOut">120 s</output></label><input type="range" id="h" min="10" max="900" step="10" value="120"></div>
+<div class="ctl"><label>Atraso do corte "em poucos segundos" <output id="dOut">5 s</output></label><input type="range" id="d" min="1" max="30" value="5"></div>
+</div><div><canvas id="expChart" width="640" height="380"></canvas><div class="kpis" id="expKpi"></div></div></div>
+<p class="meta">Considera 2,5 s para a válvula fechar. Referência de explosividade: limite inferior do GLP da ordem de 2% (≈ 20.000 ppm). O GLP é mais pesado que o ar e se acumula junto ao piso, então a concentração local pode ser bem maior que a média do modelo. É uma ilustração, não uma previsão.</p></div>
+
+<div class="sim" id="sim3"><h3>3. Leitura do MQ-2 do artigo 1: ADC → tensão → ppm</h3>
+<div class="grid2"><div>
+<div class="ctl"><label>Leitura ADC (12 bits) <output id="adcOut">656</output></label><input type="range" id="adc" min="0" max="4095" value="656"></div>
+<div class="kpis"><div>Vout (5 × ADC / 4096)<b id="vout">0,80 V</b></div><div>ppm (tabela do artigo)<b id="ppm">1.353</b></div><div>Resposta do artigo<b id="resp">ligado</b></div></div>
+</div><div><p class="meta">A estimativa interpola linearmente entre as 10 linhas da Tabela 3 do artigo. Abaixo de ADC 257 (386 ppm) não há dado tabelado. No artigo, os atuadores ficam desligados até 577 (773 ppm) e ligados a partir de 656 (1.353 ppm), então o limiar efetivo está entre os dois, e não em 600 ppm.</p></div></div></div>
+</section>
+
+<section class="wrap" id="impacto">
+<h2>Pesquisa acadêmica e cultura maker</h2>
+<p>Os artigos respondem a perguntas diferentes: <em>como detectar</em> (MQ e ADC, artigo 1), <em>como agir e permanecer funcionando sem internet</em> (artigo 2) e <em>como evitar o gás esquecido aceso</em> (artigo 3). O repositório aberto mostra a etapa seguinte: transformar isso em peças que qualquer pessoa pode baixar, imprimir, usinar e testar, e acrescentar o que os artigos não trazem: realimentação de posição, estado bloqueado persistente e rearme controlado.</p>
+<p>Nada disso substitui manutenção. Os Bombeiros recomendam trocar mangueira e registro periodicamente e testar a instalação com água e sabão; um dispositivo eletrônico é uma camada a mais.</p>
+</section>
+
+<section class="wrap" id="referencias">
+<h2>Referências</h2>
+<ol class="refs">
+<li id="r1">ILHAMDI, L.; FIKRY, M.; AIDILOF, H. A. K. Smart Fire Prevention: An IoT Approach to Detecting LPG Leaks and Fire Hazards. <em>2nd International Conference on Multidisciplinary Engineering (ICOMDEN)</em>, v. 2, p. 1-10, 2024. Licença CC BY 4.0.</li>
+<li id="r2">VIGNESH, S.; PRIYADHARSHINI, K. Smart Gas Leak Detection and Automated Shutoff System Using ESP32. <em>International Journal of Engineering Development and Research (IJEDR)</em>, v. 14, n. 1, p. 932-936, mar. 2026.</li>
+<li id="r3">FAYE, P.; KUHIKAR, S.; RATHOD, R.; CHANDEWAR, G.; THAKRE, K. Smart IoT Based Gas Leakage Detection and Auto Shut-Off System. <em>International Journal on Advanced Computer Engineering and Communication Technology</em>, v. 14, n. 1, 2025. Licença CC BY-NC-ND 4.0.</li>
+<li id="r4">JFGONJR. <em>Controlador de Fluido 10mm</em>. GitHub, [s.d.]. <a href="https://github.com/jfgonjr/controlador-de-fluido-10mm">github.com/jfgonjr/controlador-de-fluido-10mm</a>.</li>
+<li id="r5">Firmware <em>firmware_corte_gas_10mm.ino</em>, adaptação do firmware original para corte imediato de gás (este projeto).</li>
+<li id="r6">SINDIGÁS. Case Prêmio GLP de Inovação e Tecnologia: válvula de segurança para regulador doméstico. <a href="https://www.sindigas.org.br/Download/PREMIO_GLP/2020/SEGURANCA/Valvula-de-Seguranca-para-Regulador-Domestico-Clip-On.pdf">PDF</a>. O dado de 4.055 casos (2012-2014) vem de levantamento do site RW Engenharia sobre registros do Corpo de Bombeiros; fonte secundária.</li>
+<li id="r7">GOVERNO DO ESTADO DE SÃO PAULO. Chama Segura: menos acidentes relacionados ao gás de cozinha. <a href="http://bibliotecajuridica.des.sp.gov.br/chama-segura-menos-acidentes-relacionados-ao-gas-de-cozinha/">bibliotecajuridica.des.sp.gov.br</a>. Período do número de 3.083 casos não informado.</li>
+<li id="r8">TERRA. Explosões e rompimentos: Sabesp teve acidentes envolvendo obras e estruturas neste ano; relembre. <a href="https://www.terra.com.br/noticias/brasil/cidades/explosoes-e-rompimentos-sabesp-teve-acidentes-envolvendo-obras-e-estruturas-neste-ano-relembre,1111ece678d944ede038e09ddc8803feoljl05h4.html">Terra</a>; e ITATIAIA. Explosão em SP pode ter sido causada por vazamento de gás, dizem Bombeiros. <a href="https://www.itatiaia.com.br/brasil/sudeste/sp/explosao-em-sp-pode-ter-sido-causada-por-vazamento-de-gas-dizem-bombeiros/">Itatiaia</a>.</li>
+<li id="r9">SINDIGÁS. <em>GLP em Movimento: panorama do setor</em>, ed. set. 2023. <a href="https://www.sindigas.org.br/Download/PANORAMAS/NOVO%20GLP%20EM%20MOVIMENTO_SETEMBRO_2023_rev-final.pdf">PDF</a>. Estatísticas limitadas a botijões de 13 kg com laudo conclusivo, dados de distribuidoras associadas.</li>
+</ol>
+</section>
+</main>
+
+<footer><div class="wrap">
+<p><strong>Aviso.</strong> Este projeto é um protótipo educacional. Não instale em linha de gás real sem projeto, componentes certificados e responsável técnico habilitado, e não o use como única proteção.</p>
+<p><strong>Privacidade.</strong> Esta página não define cookies, não usa análise nem publicidade e não carrega fontes externas; apenas a biblioteca Three.js (modelo 3D) vem de uma CDN pública (cdnjs, da Cloudflare, ou jsDelivr como reserva), o que envia o seu endereço IP a esses servidores. Se hospedada na Vercel, a plataforma pode registrar dados técnicos de acesso (como o IP) em logs. Os simuladores rodam inteiramente no seu navegador e nada é enviado.</p>
+<p>Imagens 3D renderizadas dos arquivos STL do projeto. Os artigos 1 e 3 são de acesso aberto e este texto os parafraseia.</p></div></footer>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const fmt=(n,d=0)=>n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+/* tema */
+const root=document.documentElement;
+try{const s=localStorage.getItem('tema');if(s)root.setAttribute('data-theme',s)}catch(e){}
+$('theme').onclick=()=>{const dark=getComputedStyle(root).getPropertyValue('--bg').trim()==='#14120f';const n=dark?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('tema',n)}catch(e){};redrawAll()};
+const css=n=>getComputedStyle(root).getPropertyValue(n).trim();
+
+/* ================= SIMULADOR 1: firmware ================= */
+const T_AQUEC=30, T_FILTRO_GAS=.3, T_REARME=3, VEL=36 /*graus/s*/, T_STALL=1.2, T_DESENC=.25, T_MAN_MAX=8;
+const S={estado:'FECHANDO',ang:0,tSim:0,power:true,pir:false,stuck:false,mult:1,gas:0,thr:1000,gasAtivo:false,gasTimer:0,
+  eeprom:false,tentativas:0,tStall:0,angRef:0,tEstado:0,desenc:0,holding:false,holdT:0,rearmConsumido:false,tone:false};
+let actx=null,osc=null;
+/* ângulo do disco (0 fechada, 90 aberta), lido pelo visualizador 3D */
+window.Purga={get angle(){return Math.max(0,Math.min(90,S.ang))}};
+function log(m,c){const l=$('log');const d=document.createElement('div');if(c)d.className=c;d.textContent='['+S.tSim.toFixed(1).padStart(5)+' s] '+m;l.appendChild(d);l.scrollTop=l.scrollHeight;while(l.children.length>120)l.removeChild(l.firstChild)}
+function trocar(e){S.estado=e;S.tEstado=S.tSim;S.angRef=S.ang;S.tStall=S.tSim;if(e==='BLOQUEADA'||e==='FALHA')S.rearmConsumido=S.holding}
+function bloqAbertura(){return S.pir||S.gasAtivo||S.tSim<T_AQUEC}
+function cortar(motivo){S.eeprom=true;S.tentativas=0;trocar('FECHANDO');log('EMERGÊNCIA: '+motivo+' → fechando e BLOQUEANDO (EEPROM gravada).','e')}
+function tentarAbrir(){if(bloqAbertura()){log('Abertura NEGADA: '+(S.pir?'movimento ativo.':S.gasAtivo?'gás detectado.':'sensores aquecendo.'),'e');beep(400,.4);return}trocar('ABRINDO');log('Abrindo…')}
+function fechNormal(){S.tentativas=0;trocar('FECHANDO');log('Fechamento manual.')}
+function beep(f,d){if(!$('sound').checked)return;try{ensureAudio();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d)}catch(e){}}
+function ensureAudio(){if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume()}
+function setTone(on){if(on===S.tone)return;S.tone=on;if(!$('sound').checked)return;try{ensureAudio();if(on){osc=actx.createOscillator();const g=actx.createGain();g.gain.value=.04;osc.frequency.value=2500;osc.connect(g);g.connect(actx.destination);osc.start()}else if(osc){osc.stop();osc=null}}catch(e){}}
+$('sound').onchange=()=>{if(!$('sound').checked&&osc){osc.stop();osc=null}else if(S.tone){S.tone=false;}};
+function step(dt){
+  if(!S.power)return;
+  S.tSim+=dt;
+  S.gasAtivo=(S.gas>=S.thr)?((S.gasTimer+=dt)>=T_FILTRO_GAS):(S.gasTimer=0,false);
+  const perigo=S.pir||S.gasAtivo;
+  if((S.estado==='ABRINDO'||S.estado==='ABERTA')&&perigo)cortar(S.pir?'MOVIMENTO':'GÁS');
+  const move=(dir)=>{if(!S.stuck)S.ang=Math.max(-5,Math.min(95,S.ang+dir*VEL*dt))};
+  switch(S.estado){
+    case 'ABRINDO':
+      move(1);
+      if(Math.abs(90-S.ang)<=2.5){S.ang=90;trocar('ABERTA');log('Válvula ABERTA.','k')}
+      else if(S.stuck&&S.tSim-S.tStall>T_STALL||S.tSim-S.tEstado>T_MAN_MAX){log('Obstrução na abertura — fechando.','e');fechNormal()}
+      break;
+    case 'FECHANDO':
+      if(S.desenc>0){S.desenc-=dt;break}
+      move(-1);
+      if(Math.abs(S.ang)<=2.5){S.ang=0;S.tentativas=0;trocar(S.eeprom?'BLOQUEADA':'FECHADA');log(S.eeprom?'Fechada. Sistema BLOQUEADO até o rearme.':'Válvula FECHADA.',S.eeprom?'e':'k')}
+      else if(S.stuck&&S.tSim-S.tStall>T_STALL||S.tSim-S.tEstado>T_MAN_MAX){
+        if(++S.tentativas<=2){log('Travou ao fechar — tentando desencravar ('+S.tentativas+'/2).','e');S.desenc=T_DESENC;S.tStall=S.tSim;S.tEstado=S.tSim}
+        else{S.eeprom=true;trocar('FALHA');log('FALHA: não foi possível fechar. Alarme ativo.','e')}
+      }
+      break;
+  }
+  /* rearme por botão */
+  if(S.holding&&(S.estado==='BLOQUEADA'||S.estado==='FALHA')&&!S.rearmConsumido){
+    S.holdT+=dt;
+    if(S.holdT>=T_REARME){S.rearmConsumido=true;
+      if(bloqAbertura()){log('REARME NEGADO — movimento/gás ativo ou sensores aquecendo.','e');beep(400,.5)}
+      else{S.eeprom=false;S.tentativas=0;log('REARME OK — confirmando fechamento.','k');beep(1500,.2);trocar('FECHANDO')}
+    }
+  }
+}
+function render1(){
+  /* 0°: disco perpendicular ao fluxo; 90°: alinhado */
+  $('disc').setAttribute('transform','rotate('+(S.ang)+' 180 95)');
+  $('angTxt').textContent=Math.round(S.ang)+'°';
+  const e=S.power?S.estado:'DESLIGADO';const b=$('stBadge');b.textContent=e;b.className='badge b-'+e;
+  const alarme=S.power&&(S.eeprom||S.estado==='FALHA');
+  $('ledR').classList.toggle('on',alarme&&(S.estado!=='FALHA'||Math.floor(S.tSim*5)%2===0));
+  const mov=S.power&&(S.estado==='ABRINDO'||S.estado==='FECHANDO');
+  $('ledG').classList.toggle('on',S.power&&(S.estado==='ABERTA'||(mov&&!alarme&&Math.floor(S.tSim*2.5)%2===0)));
+  $('ledB').classList.toggle('on',alarme);setTone(alarme);
+  $('eepromTxt').textContent='EEPROM: bloqueado = '+(S.eeprom?'SIM':'não');
+  $('warmTxt').textContent=!S.power?'Sem energia: a válvula permanece onde estava. O bloqueio fica na EEPROM.':(S.tSim<T_AQUEC?'Aquecimento dos sensores: '+Math.ceil(T_AQUEC-S.tSim)+' s (abertura negada).':'Sensores prontos.');
+  $('holdBar').style.width=(S.holding&&(S.estado==='BLOQUEADA'||S.estado==='FALHA')?Math.min(100,S.holdT/T_REARME*100):0)+'%';
+}
+let last=performance.now();
+function tick(now){const dt=Math.min(.1,(now-last)/1000)*S.mult;last=now;const sub=Math.max(1,Math.ceil(dt/.05));for(let i=0;i<sub;i++)step(dt/sub);render1();requestAnimationFrame(tick)}
+$('btnTap').onclick=()=>{if(!S.power)return;if(S.estado==='FECHADA')tentarAbrir();else if(S.estado==='ABERTA')fechNormal();else if(S.estado==='ABRINDO')cortar('BOTÃO (emergência)')};
+const bh=$('btnHold');
+const hs=e=>{e.preventDefault();S.holding=true;S.holdT=0};const he=()=>{S.holding=false;S.holdT=0;S.rearmConsumido=false;};
+bh.addEventListener('pointerdown',hs);['pointerup','pointerleave','pointercancel'].forEach(t=>bh.addEventListener(t,he));
+bh.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!S.holding)hs(e)});bh.addEventListener('keyup',he);
+$('pir').onclick=()=>{S.pir=!S.pir;$('pir').textContent='Sensor de movimento: '+(S.pir?'COM MOVIMENTO':'SEM');log(S.pir?'PIR: movimento detectado.':'PIR: sem movimento.')};
+$('stuck').onclick=()=>{S.stuck=!S.stuck;$('stuck').textContent='Travar disco: '+(S.stuck?'sim':'não')};
+$('gas').oninput=e=>{S.gas=+e.target.value;$('gasOut').textContent=fmt(S.gas)+' ppm'};
+$('thr').oninput=e=>{S.thr=+e.target.value;$('thrOut').textContent=fmt(S.thr)+' ppm'};
+$('speed').onclick=()=>{S.mult=S.mult===1?10:1;$('speed').textContent='Tempo: '+S.mult+'×'};
+$('pwr').onclick=()=>{
+  if(S.power){S.power=false;$('pwr').textContent='Religar energia';log('QUEDA DE ENERGIA. A válvula fica parada onde estava.','e');setTone(false)}
+  else{S.power=true;S.tSim=0;S.gasTimer=0;S.gasAtivo=false;$('pwr').textContent='Cortar energia';S.desenc=0;S.tentativas=0;trocar('FECHANDO');log('Energia de volta: partida segura — fechando primeiro'+(S.eeprom?' (bloqueio recuperado da EEPROM).':'.'))}};
+log('Partida segura: fechando primeiro.');requestAnimationFrame(tick);
+
+/* ================= SIMULADOR 2: exposição ================= */
+function drawLines(cv,series,opt){
+  const c=cv.getContext('2d'),W=cv.width,H=cv.height,m={l:58,r:12,t:14,b:34};
+  c.clearRect(0,0,W,H);c.font='12px system-ui';
+  const xmax=opt.xmax,ymax=opt.ymax;
+  const X=x=>m.l+(W-m.l-m.r)*x/xmax,Y=y=>H-m.b-(H-m.t-m.b)*Math.min(y,ymax)/ymax;
+  c.strokeStyle=css('--line');c.fillStyle=css('--mut');c.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=ymax*i/4;c.beginPath();c.moveTo(m.l,Y(y));c.lineTo(W-m.r,Y(y));c.stroke();c.textAlign='right';c.fillText(fmt(Math.round(y)),m.l-6,Y(y)+4)}
+  c.textAlign='center';for(let i=0;i<=4;i++){const x=xmax*i/4;c.fillText(opt.xfmt(x),X(x),H-m.b+16)}
+  c.save();c.translate(14,(H-m.b+m.t)/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText(opt.ylabel,0,0);c.restore();
+  (opt.hlines||[]).forEach(h=>{if(h.y<=ymax){c.strokeStyle=h.color;c.setLineDash([5,4]);c.beginPath();c.moveTo(m.l,Y(h.y));c.lineTo(W-m.r,Y(h.y));c.stroke();c.setLineDash([]);c.fillStyle=h.color;c.textAlign='left';c.fillText(h.label,m.l+6,Y(h.y)-4)}});
+  series.forEach(s=>{c.strokeStyle=s.color;c.lineWidth=2.2;c.beginPath();s.pts.forEach((p,i)=>{i?c.lineTo(X(p[0]),Y(p[1])):c.moveTo(X(p[0]),Y(p[1]))});c.stroke()});
+  let lx=m.l+8;c.textAlign='left';series.forEach(s=>{c.fillStyle=s.color;c.fillRect(lx,H-m.b-(H-m.t-m.b)+4,12,4);c.fillStyle=css('--fg');c.fillText(s.name,lx+16,H-m.b-(H-m.t-m.b)+10);lx+=c.measureText(s.name).width+34});
+}
+function sim2(){
+  const q=+$('q').value,v=+$('v').value,a=+$('a').value,thr=+$('t').value,h=+$('h').value,d=+$('d').value;
+  $('qOut').textContent=q+' L/min';$('vOut').textContent=v+' m³';$('aOut').textContent=fmt(a,1)+' renov./h';$('tOut').textContent=fmt(thr)+' ppm';$('hOut').textContent=h+' s';$('dOut').textContent=d+' s';
+  const inc=q/60/(v*1000)*1e6, k=a/3600, TF=2.5, N=1800;
+  /* instante de detecção: simulação sem corte */
+  let C=0,tdet=null;for(let t=0;t<N;t++){C+=inc-k*C;if(C>=thr){tdet=t;break}}
+  const cenarios=[{name:'Só alarme',cut:tdet==null?null:tdet+h,close:0,color:css('--warn')},{name:'Corte em '+d+' s',cut:tdet==null?null:tdet+d,close:TF,color:css('--brass')},{name:'Corte imediato',cut:tdet,close:TF,color:css('--ok')}];
+  const res=cenarios.map(s=>{let C=0,peak=0,vol=0,pts=[];for(let t=0;t<=N;t++){let f=1;if(s.cut!=null&&t>=s.cut){f=s.close?Math.max(0,1-(t-s.cut)/s.close):0}
+      vol+=q/60*f;C+=inc*f-k*C;peak=Math.max(peak,C);if(t%5===0)pts.push([t,C])}return{...s,pts,peak,vol}});
+  const ymax=Math.max(1000,...res.map(r=>r.peak))*1.1,LIE=20000;
+  drawLines($('expChart'),res,{xmax:N,ymax:ymax,ylabel:'ppm (média no ambiente)',xfmt:x=>Math.round(x/60)+' min',hlines:[{y:thr,color:css('--mut'),label:'limiar do detector'},{y:LIE,color:css('--warn'),label:'≈ limite inferior de explosividade'}]});
+  $('expKpi').innerHTML=tdet==null?'<div style="grid-column:1/-1">Com essa vazão e ventilação, o limiar nunca é atingido: o detector não dispara.</div>':
+   '<div>Detecção em<b>'+fmt(tdet)+' s</b></div>'+res.map(r=>'<div>'+r.name+'<b>'+fmt(r.vol,1)+' L</b>pico '+fmt(r.peak)+' ppm</div>').join('');
+}
+['q','v','a','t','h','d'].forEach(i=>$(i).addEventListener('input',sim2));
+
+/* ================= SIMULADOR 3: ADC → ppm ================= */
+const T3=[[257,386],[501,579],[577,773],[656,1353],[734,1546],[889,2764],[1170,3673],[2119,4910],[3991,9415],[4096,9666]];
+function sim3(){const x=+$('adc').value;$('adcOut').textContent=x;$('vout').textContent=fmt(5*x/4096,2)+' V';
+  let p;if(x<257)p='< 386';else{for(let i=1;i<T3.length;i++){if(x<=T3[i][0]){const[a0,b0]=T3[i-1],[a1,b1]=T3[i];p=fmt(Math.round(b0+(b1-b0)*(x-a0)/(a1-a0)));break}}if(x>4096)p='9.666'}
+  $('ppm').textContent=p;$('resp').textContent=x>=656?'buzzer, LED e ventilador ligados':(x<=577?'tudo desligado':'indefinido (entre 577 e 656)')}
+$('adc').addEventListener('input',sim3);
+
+/* ================= ESTATÍSTICA ================= */
+function parseSerie(t){return t.split(/\n/).map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split(';');return[p[0].trim(),parseFloat((p[1]||'').replace(/\./g,'').replace(',','.'))]}).filter(r=>r[0]&&isFinite(r[1]))}
+function drawStats(){
+  const rows=parseSerie($('serie').value),cv=$('statChart'),c=cv.getContext('2d'),W=cv.width,H=cv.height,m={l:58,r:12,t:16,b:44};
+  c.clearRect(0,0,W,H);if(!rows.length){$('statKpi').innerHTML='';return}
+  const ymax=Math.max(...rows.map(r=>r[1]))*1.15||1,bw=(W-m.l-m.r)/rows.length;
+  c.font='12px system-ui';c.strokeStyle=css('--line');c.fillStyle=css('--mut');
+  for(let i=0;i<=4;i++){const y=H-m.b-(H-m.t-m.b)*i/4;c.beginPath();c.moveTo(m.l,y);c.lineTo(W-m.r,y);c.stroke();c.textAlign='right';c.fillText(fmt(Math.round(ymax*i/4)),m.l-6,y+4)}
+  rows.forEach((r,i)=>{const h=(H-m.t-m.b)*r[1]/ymax,x=m.l+i*bw+bw*.15;c.fillStyle=css('--acc');c.fillRect(x,H-m.b-h,bw*.7,h);c.fillStyle=css('--fg');c.textAlign='center';c.fillText(fmt(r[1]),x+bw*.35,H-m.b-h-5);
+    c.fillStyle=css('--mut');const lab=r[0].length>14?r[0].slice(0,13)+'…':r[0];c.fillText(lab,x+bw*.35,H-m.b+16)});
+  const tot=rows.reduce((s,r)=>s+r[1],0),med=tot/rows.length;let v='—';if(rows.length>1&&rows[0][1]>0)v=fmt((rows[rows.length-1][1]/rows[0][1]-1)*100,1)+'%';
+  $('statKpi').innerHTML='<div>Total<b>'+fmt(tot)+'</b></div><div>Média por linha<b>'+fmt(med,0)+'</b></div><div>Variação 1º→último<b>'+v+'</b></div>';
+}
+$('drawStats').onclick=drawStats;
+$('exStats').onclick=()=>{$('serie').value='1;100\n2;120\n3;90\n4;110';$('exNote').textContent='Valores FICTÍCIOS, só para ver o gráfico funcionando. Substitua pela série oficial.';drawStats()};
+
+function redrawAll(){sim2();drawStats()}
+sim2();sim3();drawStats();
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>if(!window.THREE)document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>')</script>
+<script>
+  /* Só o texto muda de projeto para projeto; o 3D é o mesmo em todos. */
+  window.PURGA_VIEWER_CONFIG = { desc: {
+    caixa_eletronica: "Três passagens Ø7 na parede +Y, em x = −20 / 0 / +20: alimentação 12 V, sensor de movimento (PIR) e detector de gás ou botão.",
+    placa_sensores: "PCB com o AS5600 centrado sobre a ponta do eixo."
+  } };
+</script>
+<script src="js/viewer.js"></script>
+</body>
+</html>

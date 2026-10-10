@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Estilo do visualizador 3D (réplica visual do site purgasolarsapia.vercel.app)
+   Tudo é isolado por #modelo3d .v3d para não brigar com o tema de cada página.
+   ========================================================================== */
+#modelo3d .v3d {
+  --v-bg: #fff; --v-wash: #f3f4f6; --v-line: #e5e7eb;
+  --v-ink: #1f2937; --v-soft: #374151; --v-mute: #6b7280; --v-on-ink: #fff;
+  --v-sel: #fff7ed; --v-sun: #f97316; --v-ice: #38bdf8; --v-frost: #0284c7;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px; font-weight: 400; line-height: 1.5; text-align: left;
+  color: var(--v-ink); text-transform: none; letter-spacing: normal;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #modelo3d .v3d {
+    --v-bg: #111827; --v-wash: #1f2937; --v-line: #374151;
+    --v-ink: #f3f4f6; --v-soft: #d1d5db; --v-mute: #9ca3af; --v-on-ink: #111827;
+    --v-sel: rgba(249, 115, 22, .16);
+  }
+}
+:root[data-theme="dark"] #modelo3d .v3d {
+  --v-bg: #111827; --v-wash: #1f2937; --v-line: #374151;
+  --v-ink: #f3f4f6; --v-soft: #d1d5db; --v-mute: #9ca3af; --v-on-ink: #111827;
+  --v-sel: rgba(249, 115, 22, .16);
+}
+#modelo3d .v3d, #modelo3d .v3d * { box-sizing: border-box; }
+#modelo3d .v3d :focus-visible { outline: 3px solid var(--v-ice); outline-offset: 2px; border-radius: 4px; }
+
+/* Abas */
+#modelo3d .v3d-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin: 2rem 0 0; }
+#modelo3d .v3d-tab {
+  appearance: none; margin: 0; padding: .55rem 1rem; white-space: nowrap; cursor: pointer;
+  font: 600 .88rem/1.25rem Inter, system-ui, sans-serif; text-transform: none; letter-spacing: normal;
+  border: 2px solid var(--v-line); border-radius: 999px; background: var(--v-bg); color: var(--v-soft);
+}
+#modelo3d .v3d-tab:hover { border-color: var(--v-ice); }
+#modelo3d .v3d-tab.is-active { background: var(--v-ink); border-color: var(--v-ink); color: var(--v-on-ink); }
+
+/* Layout */
+#modelo3d .v3d-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; margin-top: 1.25rem; }
+@media (min-width: 1024px) {
+  #modelo3d .v3d-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  #modelo3d .v3d-main { grid-column: span 8; }
+  #modelo3d .v3d-side { grid-column: span 4; }
+}
+#modelo3d .v3d-main, #modelo3d .v3d-side { min-width: 0; }
+#modelo3d .v3d-side > * + * { margin-top: 1.25rem; }
+
+/* Palco 3D */
+#modelo3d .viewer-wrap { position: relative; height: 440px; background: #1f2937; border-radius: 16px; overflow: hidden; }
+@media (min-width: 1024px) { #modelo3d .viewer-wrap { height: 560px; } }
+#modelo3d .viewer-canvas { display: block; width: 100%; height: 100%; max-width: none; margin: 0; background: transparent; border-radius: 0; touch-action: none; cursor: grab; outline-offset: -4px; }
+#modelo3d .viewer-canvas:active { cursor: grabbing; }
+#modelo3d .viewer-status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2rem; margin: 0; color: #e5e7eb; font-size: .95rem; line-height: 1.5; pointer-events: none; }
+#modelo3d .viewer-status[hidden] { display: none; }
+#modelo3d .viewer-status[data-error="1"] { color: #fecaca; }
+#modelo3d .viewer-hint { position: absolute; left: 14px; bottom: 12px; margin: 0; font-size: .74rem; line-height: 1.4; color: #9ca3af; pointer-events: none; }
+
+/* Painel de controles */
+#modelo3d .v3d-panel { background: var(--v-bg); border: 1px solid var(--v-line); border-radius: 16px; padding: 1.25rem; }
+#modelo3d .v3d-panel > * + * { margin-top: 1.25rem; }
+#modelo3d .v3d-row { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+#modelo3d .v3d-row label { font: 600 1rem/1.5 Inter, system-ui, sans-serif; color: var(--v-ink); margin: 0; }
+#modelo3d .v3d-row output { font: 700 1.125rem/1.75rem Merriweather, Georgia, serif; color: var(--v-ink); }
+#modelo3d .v3d input[type=range] { display: block; width: 100%; height: 28px; margin: 0; accent-color: var(--v-sun); cursor: pointer; }
+#modelo3d .v3d input[type=range].range-frost { accent-color: var(--v-frost); }
+#modelo3d .v3d-sync { display: flex; align-items: center; gap: .5rem; margin: .25rem 0 0; font: 400 .875rem/1.25rem Inter, system-ui, sans-serif; color: var(--v-soft); cursor: pointer; }
+#modelo3d .v3d-sync input { margin: 0; }
+#modelo3d .v3d-actions { display: flex; gap: .5rem; }
+#modelo3d .v3d-btn {
+  appearance: none; margin: 0; display: inline-flex; align-items: center; gap: .55rem; cursor: pointer;
+  font: 600 .85rem/1.25rem Inter, system-ui, sans-serif; text-transform: none; letter-spacing: normal;
+  padding: .55rem .9rem; border-radius: 10px; border: 2px solid var(--v-line); background: var(--v-bg); color: var(--v-ink);
+  transition: transform .15s, border-color .15s;
+}
+#modelo3d .v3d-btn:hover { transform: translateY(-1px); border-color: #9ca3af; }
+#modelo3d .v3d-btn.is-active { background: var(--v-ink); color: var(--v-on-ink); border-color: var(--v-ink); }
+
+/* Lista de peças */
+#modelo3d .v3d-h3 { font: 700 1.125rem/1.75rem Merriweather, Georgia, serif; margin: 0 0 .75rem; color: var(--v-ink); }
+#modelo3d #partList { list-style: none; margin: 0; padding: 0; }
+#modelo3d #partList > li + li { margin-top: .5rem; }
+#modelo3d .part-item { display: flex; align-items: center; gap: .5rem; border: 1px solid var(--v-line); border-radius: 12px; padding: .2rem .5rem .2rem .2rem; background: var(--v-bg); margin-bottom: 0; }
+#modelo3d .part-item.is-selected { border-color: var(--v-sun); background: var(--v-sel); }
+#modelo3d .part-pick { appearance: none; flex: 1; display: flex; align-items: center; gap: .7rem; padding: .5rem; margin: 0; text-align: left; background: none; border: 0; cursor: pointer; border-radius: 10px; color: var(--v-ink); font: inherit; }
+#modelo3d .part-swatch { width: 18px; height: 18px; border-radius: 5px; flex: none; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18); }
+#modelo3d .part-text { display: flex; flex-direction: column; }
+#modelo3d .part-name { font-weight: 600; font-size: .9rem; line-height: 1.3; color: var(--v-ink); }
+#modelo3d .part-dim { font-size: .76rem; line-height: 1.3; color: var(--v-mute); }
+#modelo3d .part-vis { display: flex; align-items: center; gap: .3rem; margin: 0; font: 400 .76rem/1.3 Inter, system-ui, sans-serif; color: var(--v-mute); cursor: pointer; }
+#modelo3d .part-vis input { margin: 0; }
+#modelo3d #partInfo { margin: .75rem 0 0; min-height: 3.5rem; font: 400 .875rem/1.625 Inter, system-ui, sans-serif; color: var(--v-soft); }
+#modelo3d #partInfo strong { color: var(--v-ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  #modelo3d .v3d * { transition: none !important; animation: none !important; }
+}
